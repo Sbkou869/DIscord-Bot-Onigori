@@ -1,0 +1,98 @@
+import disnake
+from disnake.ext import commands
+from database.Database import UsersDataBase
+from cogs.mute import Timeout
+
+db = UsersDataBase()
+
+
+class RecruitementModal(disnake.ui.Modal):
+    def __init__(self, arg):
+        self.arg = arg
+
+        components = [
+            disnake.ui.TextInput(label="Время", placeholder="Время в минутах...", custom_id="time"),
+            disnake.ui.TextInput(label="Причина", placeholder="Причина", custom_id="reason")
+        ]
+
+        title = self.arg
+
+        super().__init__(title=title, components=components, custom_id="recruitementModal")
+
+    async def callback(self, interaction: disnake.ModalInteraction) -> None:
+        time = interaction.text_values["Время (в минутах)"]
+        reason = interaction.text_values["Причина"]
+        userName = interaction.text_value[self.title]
+
+        embed = disnake.Embed(color=0x2F3136, title="Заявка отправлена!")
+        embed.description = f"{interaction.author.mention}, "
+        embed.set_thumbnail(url=interaction.author.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+        channel = interaction.guild.get_channel(...) 
+        await channel.send(f"Заявка на {self.arg} от {name} {interaction.author.mention} ({age} лет)")
+
+
+class RecruitementSelect(disnake.ui.Select):
+    def __init__(self):
+        options = [
+            disnake.SelectOption(label="Модератор", value="moderator", description="Модератор сервера"),
+            disnake.SelectOption(label="Ведущий", value="eventsmod", description="Ведущий мероприятий"),
+        ]
+
+        super().__init__(
+            placeholder="Выбери желаемую роль", options=options, min_values=0, max_values=1, custom_id="recruitement"
+        )
+
+    async def callback(self, interaction: disnake.MessageInteraction):
+        if not interaction.values:
+            await interaction.response.defer()
+        else:
+            await interaction.response.send_modal(RecruitementModal(interaction.values[0]))
+
+
+class Recruitement(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.persistent_views_added = False
+
+    @commands.command()
+    async def recruit(self, ctx):
+        view = disnake.ui.View()
+        view.add_item(RecruitementSelect())
+
+        await ctx.send('Выбери желаемую роль', view=view)
+
+class ButtonView(disnake.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    @disnake.ui.button(label="🎮", style=disnake.ButtonStyle.grey, custom_id="btMute")
+    async def btMute(self, button: disnake.ui.Button, interaction, member: disnake.Member):
+        await Timeout.timeout()
+        await interaction.response.defer()
+     
+
+class AdminPanel(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.persistent_views_added = False
+
+    @commands.slash_command(description="Панель администратора")
+    @commands.has_permissions(administrator=True, moderate_members=True)
+    async def admin(self, interaction: disnake.ApplicationCommandInteraction, member: disnake.Member):
+        view = ButtonView()
+
+        embed = disnake.Embed(color=0x2F3136)
+        embed.set_author(name="Панель администратора:")
+        if member.avatar:
+            embed.set_thumbnail(url=member.avatar.url)
+        else:
+            embed.set_thumbnail(url=member.default_avatar.url)
+        embed.description = f"Вы в панели администратора\n\n Выберите действия над пользователем {member.mention}."
+        embed.set_image(url="https://i.imgur.com/QzB7q9J.png")
+        await interaction.send(embed=embed, view=view, ephemeral=True)
+        
+        
+def setup(bot):
+    bot.add_cog(AdminPanel(bot))
