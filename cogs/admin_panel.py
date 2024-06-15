@@ -2,6 +2,130 @@ import disnake
 from disnake.ext import commands
 import datetime
 
+from disnake.ui.action_row import ModalUIComponent
+from disnake.utils import MISSING
+from database.Database import UsersDataBase
+
+global_db = UsersDataBase()
+
+class ModalDeleteWarn(disnake.ui.Modal):
+    def __init__(self, member: disnake.Member):
+        self.member = member
+        
+        components = [
+            disnake.ui.TextInput(label="Количество предупреждений", placeholder="Введите количество предупреждений", custom_id="count_warns"),
+        ]
+
+        title = f"Снятие предупреждения пользователю {member.name}"
+        
+        super().__init__(title=title, components=components, custom_id="modalDeleteWarn")
+        
+        
+    async def callback(self, interaction: disnake.ModalInteraction) -> None:
+        countDeleteWarn = interaction.text_values["count_warns"]
+        
+        await global_db.create_table_warns()
+        result_cheak_db = await global_db.check_user_warn(interaction, self.member.id)
+        
+        if result_cheak_db: # Если пользователь есть в таблице тогда
+            await global_db.delete_warn_user(self.member.id, countDeleteWarn)
+            embed = disnake.Embed(color=0x2F3136, title="Снятие предупреждения")
+            embed.description = f"{interaction.author.mention}, вы успешно сняли предупреждение пользователю {self.member.mention} " \
+                                f"в количестве {countDeleteWarn}."
+            embed.set_thumbnail(url=interaction.author.display_avatar.url)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+            channel = interaction.guild.get_channel(1132400063851790409)  # Вставить ID канала куда будут отправляться заявки
+            await channel.send(f"(Снятие предупреждения) Администратор {interaction.author.mention} снял предупреждение пользователю {self.member.mention} в количестве {countDeleteWarn}")
+        else: # Если лож
+            embed = disnake.Embed(color=0x2F3136, title="Пользователя не найдено!")
+            embed.description = f"{interaction.author.mention}, Пользователь {self.member.mention} " \
+                                f"не найден в таблице."
+            embed.set_thumbnail(url=interaction.author.display_avatar.url)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+
+class ModalWarn(disnake.ui.Modal):
+    def __init__(self, member: disnake.Member):
+        self.member = member
+        
+        components = [
+            disnake.ui.TextInput(label="Количество предупреждений", placeholder="Введите количество предупреждений", custom_id="count_warns"),
+            disnake.ui.TextInput(label="Причина предупреждения", placeholder="Введите причину предупреждения", custom_id="reason")
+        ]
+
+        title = f"Выдача предупреждения пользователю {member.name}"
+        
+        super().__init__(title=title, components=components, custom_id="modalWarn")
+
+    async def callback(self, interaction: disnake.ModalInteraction) -> None:
+        countWarn = interaction.text_values["count_warns"]
+        reason = interaction.text_values["reason"]
+        
+        await global_db.create_table_warns()
+        result_cheak_db = await global_db.check_user_warn(interaction, self.member.id)
+        
+        if result_cheak_db: # Если пользователь есть в таблице тогда
+            if await global_db.get_user_warn_count(self.member.id) >= 3: # Проверяем количество предупреждений и кикаем если больше или равно 3
+                await self.member.kick()
+                await interaction.response.send_message("Количество предупреждений пользователя было больше 3-х он был изгнан с сервера.")
+                
+            elif await global_db.get_user_warn_count(self.member.id) < 3: # Если меньше 3 тогда обновляем количество предупреждений
+                await global_db.update_warns(interaction, self.member.id, countWarn)
+                
+                embed = disnake.Embed(color=0x2F3136, title="Предупреждение выдано!")
+                embed.description = f"{interaction.author.mention}, Вы успешно выдали предупреждение пользователю {self.member.mention} " \
+                                    f"в количестве {countWarn}"
+                embed.set_thumbnail(url=interaction.author.display_avatar.url)
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+                
+                channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+                await channel.send(f"(Обновление) Администратор {interaction.author.mention} выдал предупреждение пользователю {self.member.mention} в количестве {countWarn} ( по причине: {reason})")
+                
+                if await global_db.get_user_warn_count(self.member.id) >= 3: # Опять проверяем в случае истины кикаем
+                    await self.member.kick()
+                    await interaction.response.send_message("Количество предупреждений пользователя было больше 3-х он был изгнан с сервера.")
+        else: # Если лож
+            await global_db.create_table_warns()
+            await global_db.insert_warns(interaction, self.member.id, self.member.name, countWarn)
+            
+            embed = disnake.Embed(color=0x2F3136, title="Предупреждение выдано!")
+            embed.description = f"{interaction.author.mention}, Вы успешно выдали предупреждение пользователю {self.member.mention} " \
+                                f"в количестве {countWarn}"
+            embed.set_thumbnail(url=interaction.author.display_avatar.url)
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+            
+            channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+            await channel.send(f"Администратор {interaction.author.mention} выдал предупреждение пользователю {self.member.mention} в количестве {countWarn} ( по причине: {reason})")
+
+
+class ModalReaname(disnake.ui.Modal):
+    def __init__(self, member: disnake.Member):
+        self.member = member
+        
+        components = [
+            disnake.ui.TextInput(label="Новое имя пользователя", placeholder="Введите новое имя пользователя", custom_id="new_name"),
+            disnake.ui.TextInput(label="Причина изменения", placeholder="Введите причину изменения", custom_id="reason")
+        ]
+        
+        title = f"Изменение имени пользователя {member.name}"
+        
+        super().__init__(title=title, components=components, custom_id="modalReaname")
+        
+    async def callback(self, interaction: disnake.ModalInteraction) -> None:
+        new_name = interaction.text_values["new_name"]
+        reason = interaction.text_values["reason"]
+        
+        await self.member.edit(nick=new_name)        
+        embed = disnake.Embed(color=0x2F3136, title="Имя изменино!")
+        embed.description = f"{interaction.author.mention}, Вы успешно изменили имя пользователю {self.member.mention} " \
+                            f"на {new_name}"
+        embed.set_thumbnail(url=interaction.author.display_avatar.url)
+        await interaction.response.send_message(embed=embed, ephemeral=True)
+        
+        channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+        await channel.send(f"Администратор {interaction.author.mention} изменил имя пользователю {self.member.mention} на {new_name} ( по причине: {reason})")
+        
+        
 # region ButtonsMutes
 class ButtonMuteViev(disnake.ui.View):
     def __init__(self, member: disnake.Member):
@@ -122,7 +246,7 @@ class ButtonViev(disnake.ui.View):
         super().__init__(timeout=None)
         self.member = member
 
-    @disnake.ui.button(label="Мут", style=disnake.ButtonStyle.blurple, custom_id="btMute")
+    @disnake.ui.button(label="Мут", style=disnake.ButtonStyle.danger, custom_id="btMute")
     async def btMuteAll(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         member = self.member
         view = ButtonMuteViev(member)
@@ -139,7 +263,7 @@ class ButtonViev(disnake.ui.View):
 
         await interaction.response.edit_message(embed=embed, view=view)
 
-    @disnake.ui.button(label="Забанить", style=disnake.ButtonStyle.blurple, custom_id="btBan")
+    @disnake.ui.button(label="Забанить", style=disnake.ButtonStyle.danger, custom_id="btBan")
     async def btBan(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         await self.member.ban()
         embed = disnake.Embed(
@@ -148,7 +272,30 @@ class ButtonViev(disnake.ui.View):
             color=disnake.Color.red()
         )
         await interaction.response.send_message(embed=embed, ephemeral=True)
-
+        
+    
+    @disnake.ui.button(label="Выдать предупреждение", style=disnake.ButtonStyle.danger, custom_id="btWarn")
+    async def btSetWarn(self, button: disnake.ui.Button, interaction: disnake.Interaction):
+        if not self.member:
+            await interaction.response.defer()
+        else:
+            await interaction.response.send_modal(ModalWarn(self.member))
+    
+    @disnake.ui.button(label="Снять предупреждения", style=disnake.ButtonStyle.blurple, custom_id="btDeleteWarns")
+    async def btDeleteWarns(self, button: disnake.ui.Button, interaction: disnake.Interaction):
+        if not self.member:
+            await interaction.response.defer()
+        else:
+            await interaction.response.send_modal(ModalDeleteWarn(self.member))
+    
+    @disnake.ui.button(label="Изменить имя", style=disnake.ButtonStyle.blurple, custom_id="btRename")
+    async def btRename(self, button: disnake.ui.Button, interaction: disnake.Interaction):
+        if not self.member:
+            await interaction.response.defer()
+        else:
+            await interaction.response.send_modal(ModalReaname(self.member))
+            
+    
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
