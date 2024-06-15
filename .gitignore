@@ -163,5 +163,5 @@ cython_debug/
 
 
 /config/config.env
-/font/
-/image/
+font/** 
+image/** 
