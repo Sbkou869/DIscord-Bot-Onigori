@@ -1,8 +1,9 @@
 {
   "ExpandedNodes": [
     "",
+    "\\cogs",
     "\\config"
   ],
-  "SelectedNode": "\\utils",
+  "SelectedNode": "\\cogs\\admin_panel.py",
   "PreviewInSolutionExplorer": false
 }

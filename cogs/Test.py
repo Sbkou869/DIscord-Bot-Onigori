@@ -9,7 +9,8 @@ class Test(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         
-    @commands.slash_command(description="create table")
+    @commands.slash_command(description="create table")  
+    @commands.is_owner()
     async def crt(self, interaction):
         await global_db.create_table()
         await interaction.send("okay")
