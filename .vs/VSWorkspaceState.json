@@ -2,8 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\cogs",
-    "\\config"
+    "\\config",
+    "\\database",
+    "\\database\\fileDB"
   ],
-  "SelectedNode": "\\cogs\\admin_panel.py",
+  "SelectedNode": "\\cogs\\user_card.py",
   "PreviewInSolutionExplorer": false
 }
