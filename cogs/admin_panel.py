@@ -126,7 +126,6 @@ class ModalReaname(disnake.ui.Modal):
         await channel.send(f"Администратор {interaction.author.mention} изменил имя пользователю {self.member.mention} на {new_name} ( по причине: {reason})")
         
         
-# region ButtonsMutes
 class ButtonMuteViev(disnake.ui.View):
     def __init__(self, member: disnake.Member):
         self.member = member
