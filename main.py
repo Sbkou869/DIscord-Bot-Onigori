@@ -12,7 +12,7 @@ global_db = UsersDataBase()
 intents = disnake.Intents.all()
 intents.message_content = True
 prefix = os.getenv('PREFIX')
-bot = commands.Bot(command_prefix=prefix, intents=intents, test_guilds=[1132400062450909244])
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 bot.remove_command("help")
 
 @bot.event
@@ -35,5 +35,5 @@ for file in os.listdir("./cogs"):
     if file.endswith(".py"):
         bot.load_extension(f"cogs.{file[:-3]}")
 
-token = os.getenv ('TOKEN')
+token = os.getenv ('TEST')
 bot.run(token)
