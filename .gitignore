@@ -165,4 +165,8 @@ cython_debug/
 /config/config.env
 
 font/ 
-image/ 
+image/
+database/fileDB/
+
+requirements.txt 
+cogs/Test.py
