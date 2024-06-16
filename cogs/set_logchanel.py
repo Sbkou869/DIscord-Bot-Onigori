@@ -11,9 +11,8 @@ class Set_LogChannel(commands.Cog):
     @commands.slash_command(description="Установка канала логирования")
     @commands.has_permissions(administrator=True)
     async def set_log(self, interaction: disnake.ApplicationCommandInteraction, channel_id: disnake.TextChannel):
-        guild_id = interaction.guild.id
         await db.create_table_log_chanel()
-        await db.insert_logs_channel(interaction, channel_id, guild_id)
+        await db.insert_logs_channel(interaction, channel_id.id, interaction.guild.id)
         
         
 def setup(bot):

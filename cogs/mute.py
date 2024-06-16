@@ -7,7 +7,7 @@ class Timeout(commands.Cog):
         self.bot = bot
 
     @commands.slash_command(description="Ограничеть пользователля")
-    async def timeout(self, interaction, member: disnake.Member, time: int, reason: str):
+    async def mute(self, interaction, member: disnake.Member, time: int, reason: str = None):
         time = datetime.datetime.now() + datetime.timedelta(minutes=time)
         await member.timeout(until=time, reason=reason)
         await interaction.response.send_message(
@@ -16,7 +16,7 @@ class Timeout(commands.Cog):
         )
 
     @commands.slash_command(description="Снять ограничения")
-    async def un_timeout(self, interaction, member: disnake.Member):
+    async def un_mute(self, interaction, member: disnake.Member):
         await member.timeout(until=None, reason=None)
         await interaction.response.send_message(
             f"Пользователь {member.mention} был разтайм-аутен",
