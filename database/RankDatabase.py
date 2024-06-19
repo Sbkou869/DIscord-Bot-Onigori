@@ -7,10 +7,10 @@ rnd_score = random.randint(3, 16)
 
 class RankDatabase:
     def __init__(self):
-        self.economydb = 'database/fileDB/economy.db'
+        self.botDatabase = "database/fileDB/BotDDatabase.db"
         
     async def create_table(self):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 await cursor.execute('''CREATE TABLE IF NOT EXISTS economy (
                                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -23,9 +23,8 @@ class RankDatabase:
                                     )''')
                 await db.commit()
                 
-    # Метод "get_user" получает данные пользователя из базы данных по его ID.
     async def get_user(self, user: disnake.Member):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 query = 'SELECT * FROM economy WHERE id = ?'
                 await cursor.execute(query, (user.id,))
@@ -33,7 +32,7 @@ class RankDatabase:
     
     # Метод "add_user" добавляет пользователя в базу данных, если его там нет.
     async def add_user(self, user: disnake.Member):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             if not await self.get_user(user):
                 async with db.cursor() as cursor:
                     query = 'INSERT INTO economy (id, userName, level, score, new_score, coins, rubins) VALUES (?, ?, ?, ?, ?, ?, ?)'
@@ -41,21 +40,21 @@ class RankDatabase:
                     await db.commit()
                     
     async def update_money(self, user: disnake.Member, coins: int, rubins: int):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 query = 'UPDATE economy SET coins = coins + ?, rubins = rubins + ? WHERE id = ?'
                 await cursor.execute(query, (coins, rubins, user.id))
                 await db.commit()
                 
     async def update_score(self, user_id):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 query = f'UPDATE economy SET score = score + ? WHERE id = ?'
                 await cursor.execute(query, (rnd_score, user_id))
                 await db.commit()
                 
     async def update_level(self, user_id):
-        async with aiosqlite.connect(self.economydb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 await cursor.execute('SELECT score, level FROM economy WHERE id = ?', (user_id,))
                 result = await cursor.fetchone()
@@ -73,4 +72,5 @@ class RankDatabase:
                 else:
                     print("User not found")
 
-    
+    async def stavka(self, user_id, count):
+        pass
