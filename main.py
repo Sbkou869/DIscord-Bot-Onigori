@@ -3,7 +3,7 @@ from disnake.ext import commands
 import os
 import sys
 from dotenv import load_dotenv
-from database.Database import UsersDataBase
+from database.UserInfoDatabase import UsersDataBase
 
 load_dotenv("config/config.env")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
