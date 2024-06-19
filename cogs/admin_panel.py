@@ -4,9 +4,9 @@ import datetime
 
 from disnake.ui.action_row import ModalUIComponent
 from disnake.utils import MISSING
-from database.Database import UsersDataBase
+from database.UserInfoDatabase import UsersDataBase
 
-global_db = UsersDataBase()
+user_db = UsersDataBase()
 
 class ModalDeleteWarn(disnake.ui.Modal):
     def __init__(self, member: disnake.Member):
@@ -24,18 +24,18 @@ class ModalDeleteWarn(disnake.ui.Modal):
     async def callback(self, interaction: disnake.ModalInteraction) -> None:
         countDeleteWarn = interaction.text_values["count_warns"]
         
-        await global_db.create_table_warns()
-        result_cheak_db = await global_db.check_user_warn(interaction, self.member.id)
+        await user_db.create_table_warns()
+        result_cheak_db = await user_db.check_user_warn(interaction, self.member.id)
         
         if result_cheak_db: # Если пользователь есть в таблице тогда
-            await global_db.delete_warn_user(self.member.id, countDeleteWarn)
+            await user_db.delete_warn_user(self.member.id, countDeleteWarn)
             embed = disnake.Embed(color=0x2F3136, title="Снятие предупреждения")
             embed.description = f"{interaction.author.mention}, вы успешно сняли предупреждение пользователю {self.member.mention} " \
                                 f"в количестве {countDeleteWarn}."
             embed.set_thumbnail(url=interaction.author.display_avatar.url)
             await interaction.response.send_message(embed=embed, ephemeral=True)
             
-            channel = interaction.guild.get_channel(1132400063851790409)  # Вставить ID канала куда будут отправляться заявки
+            channel = interaction.guild.get_channel(await user_db.get_log_channel(interaction.guild))  # Вставить ID канала куда будут отправляться заявки
             await channel.send(f"(Снятие предупреждения) Администратор {interaction.author.mention} снял предупреждение пользователю {self.member.mention} в количестве {countDeleteWarn}")
         else: # Если лож
             embed = disnake.Embed(color=0x2F3136, title="Пользователя не найдено!")
@@ -61,16 +61,16 @@ class ModalWarn(disnake.ui.Modal):
         countWarn = interaction.text_values["count_warns"]
         reason = interaction.text_values["reason"]
         
-        await global_db.create_table_warns()
-        result_cheak_db = await global_db.check_user_warn(interaction, self.member.id)
+        await user_db.create_table_warns()
+        result_cheak_db = await user_db.check_user_warn(interaction, self.member.id)
         
         if result_cheak_db: # Если пользователь есть в таблице тогда
-            if await global_db.get_user_warn_count(self.member.id) >= 3: # Проверяем количество предупреждений и кикаем если больше или равно 3
+            if await user_db.get_user_warn_count(self.member.id) >= 3: # Проверяем количество предупреждений и кикаем если больше или равно 3
                 await self.member.kick()
                 await interaction.response.send_message("Количество предупреждений пользователя было больше 3-х он был изгнан с сервера.")
                 
-            elif await global_db.get_user_warn_count(self.member.id) < 3: # Если меньше 3 тогда обновляем количество предупреждений
-                await global_db.update_warns(interaction, self.member.id, countWarn)
+            elif await user_db.get_user_warn_count(self.member.id) < 3: # Если меньше 3 тогда обновляем количество предупреждений
+                await user_db.update_warns(interaction, self.member.id, countWarn)
                 
                 embed = disnake.Embed(color=0x2F3136, title="Предупреждение выдано!")
                 embed.description = f"{interaction.author.mention}, Вы успешно выдали предупреждение пользователю {self.member.mention} " \
@@ -78,15 +78,15 @@ class ModalWarn(disnake.ui.Modal):
                 embed.set_thumbnail(url=interaction.author.display_avatar.url)
                 await interaction.response.send_message(embed=embed, ephemeral=True)
                 
-                channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+                channel = interaction.guild.get_channel(await user_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
                 await channel.send(f"(Обновление) Администратор {interaction.author.mention} выдал предупреждение пользователю {self.member.mention} в количестве {countWarn} ( по причине: {reason})")
                 
-                if await global_db.get_user_warn_count(self.member.id) >= 3: # Опять проверяем в случае истины кикаем
+                if await user_db.get_user_warn_count(self.member.id) >= 3: # Опять проверяем в случае истины кикаем
                     await self.member.kick()
                     await interaction.response.send_message("Количество предупреждений пользователя было больше 3-х он был изгнан с сервера.")
         else: # Если лож
-            await global_db.create_table_warns()
-            await global_db.insert_warns(interaction, self.member.id, self.member.name, countWarn)
+            await user_db.create_table_warns()
+            await user_db.insert_warns(interaction, self.member.id, self.member.name, countWarn)
             
             embed = disnake.Embed(color=0x2F3136, title="Предупреждение выдано!")
             embed.description = f"{interaction.author.mention}, Вы успешно выдали предупреждение пользователю {self.member.mention} " \
@@ -94,7 +94,7 @@ class ModalWarn(disnake.ui.Modal):
             embed.set_thumbnail(url=interaction.author.display_avatar.url)
             await interaction.response.send_message(embed=embed, ephemeral=True)
             
-            channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+            channel = interaction.guild.get_channel(await user_db.get_log_channel(interaction))  # Вставить ID канала куда будут отправляться заявки
             await channel.send(f"Администратор {interaction.author.mention} выдал предупреждение пользователю {self.member.mention} в количестве {countWarn} ( по причине: {reason})")
 
 
@@ -122,11 +122,10 @@ class ModalReaname(disnake.ui.Modal):
         embed.set_thumbnail(url=interaction.author.display_avatar.url)
         await interaction.response.send_message(embed=embed, ephemeral=True)
         
-        channel = interaction.guild.get_channel(await global_db.get_log_channel(interaction.guild.id))  # Вставить ID канала куда будут отправляться заявки
+        channel = interaction.guild.get_channel(await user_db.get_log_channel(interaction.guild))  # Вставить ID канала куда будут отправляться заявки
         await channel.send(f"Администратор {interaction.author.mention} изменил имя пользователю {self.member.mention} на {new_name} ( по причине: {reason})")
         
         
-# region ButtonsMutes
 class ButtonMuteViev(disnake.ui.View):
     def __init__(self, member: disnake.Member):
         self.member = member

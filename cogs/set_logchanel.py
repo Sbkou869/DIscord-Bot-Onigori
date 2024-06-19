@@ -1,8 +1,8 @@
 import disnake
 from disnake.ext import commands
-from database.Database import UsersDataBase
+from database.LogsDatabase import LogsDatabase
 
-db = UsersDataBase()
+log_db = LogsDatabase()
 
 class Set_LogChannel(commands.Cog):
     def __init__(self, bot):
@@ -10,10 +10,17 @@ class Set_LogChannel(commands.Cog):
         
     @commands.slash_command(description="Установка канала логирования")
     @commands.has_permissions(administrator=True)
-    async def set_log(self, interaction: disnake.ApplicationCommandInteraction, channel_id: disnake.TextChannel):
-        await db.create_table_log_chanel()
-        await db.insert_logs_channel(interaction, channel_id.id, interaction.guild.id)
+    async def set_log(self, interaction: disnake.ApplicationCommandInteraction, channel: disnake.TextChannel):
+        guild = interaction.guild
+        await log_db.create_table_log_chanel()
+        await log_db.insert_logs_channel(interaction, channel, guild)
         
+    @commands.slash_command(description="Удаление канала логирования")
+    @commands.has_permissions(administrator=True)
+    async def remove_log_channel(self, interaction: disnake.ApplicationCommandInteraction):
+        guild = interaction.guild
+        await log_db.remove_log_channel(guild)
+        await interaction.response.send_message("Канал логирования удален", ephemeral=True)    
         
 def setup(bot):
     bot.add_cog(Set_LogChannel(bot))

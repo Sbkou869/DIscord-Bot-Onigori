@@ -4,10 +4,8 @@ from disnake.ext import commands
 
 class UsersDataBase:
     def __init__(self):
-        self.userdb = 'database/fileDB/users.db'
-        self.logsdb = 'database/fileDB/logs.db'
-        self.warnsdb = 'database/fileDB/warns.db'
-        
+        self.botDatabase = "database/fileDB/BotDDatabase.db"
+    
     async def create_table(self):
         async with aiosqlite.connect(self.userdb) as db:
             async with db.cursor() as cursor:
@@ -18,17 +16,8 @@ class UsersDataBase:
                                     )''')
                 await db.commit()
     
-    async def create_table_log_chanel(self):
-        async with aiosqlite.connect(self.logsdb) as db:
-            async with db.cursor() as cursor:
-                await cursor.execute('''CREATE TABLE IF NOT EXISTS logsChanel (
-                                        guildID INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        channelLogsID INTEGER NULL
-                                    )''')
-                await db.commit()
-                
     async def create_table_warns(self):
-        async with aiosqlite.connect(self.warnsdb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 await cursor.execute('''CREATE TABLE IF NOT EXISTS warns (
                                         userID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,19 +25,6 @@ class UsersDataBase:
                                         countWarns INTEGER NULL
                                     )''')
                 await db.commit()
-    
-    async def delete_user_from_all_databases(self, user_id):
-        databases = [self.userdb, self.warnsdb]
-
-        for database in databases:
-            async with aiosqlite.connect(database) as db:
-                async with db.cursor() as cursor:
-                    if 'users' in database:
-                        await cursor.execute('DELETE FROM users WHERE userID = ?', (user_id,))
-                    elif 'warns' in database:
-                        await cursor.execute('DELETE FROM warns WHERE userID = ?', (user_id,))
-                    await db.commit()
-    
     
     async def insert_warns(self, interaction, member_id, member_name, warn: int):
         async with aiosqlite.connect(self.warnsdb) as db:
@@ -105,20 +81,15 @@ class UsersDataBase:
                 await cursor.execute(query, (member.id,))
                 await db.commit()
             await interaction.send("Видалено", ephemeral=True)
-            
-    async def insert_logs_channel(self, interaction, channelLogs_id, guild_id):
-        async with aiosqlite.connect(self.logsdb) as db:
-            async with db.cursor() as cursor:
-                query = '''INSERT INTO logsChanel (guildID, channelLogsID) VALUES (?, ?)'''
-                await cursor.execute(query, (guild_id, channelLogs_id))
-                await db.commit()
-            await interaction.send("Добавлено", ephemeral=True)
-            
-    async def get_log_channel(self, guild_id):
-        async with aiosqlite.connect(self.warnsdb) as db:
-            async with db.cursor() as cursor:
-                query_check = '''SELECT channelLogsID FROM warns WHERE guildID = ?'''
-                await cursor.execute(query_check, (guild_id,))
-                channelLogsID = await cursor.fetchone()
-                return channelLogsID
     
+    async def delete_user_from_all_databases(self, user_id):
+        databases = [self.userdb, self.warnsdb]
+
+        for database in databases:
+            async with aiosqlite.connect(database) as db:
+                async with db.cursor() as cursor:
+                    if 'users' in database:
+                        await cursor.execute('DELETE FROM users WHERE userID = ?', (user_id,))
+                    elif 'warns' in database:
+                        await cursor.execute('DELETE FROM warns WHERE userID = ?', (user_id,))
+                    await db.commit()
