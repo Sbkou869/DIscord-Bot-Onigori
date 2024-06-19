@@ -2,9 +2,9 @@ import disnake
 import asyncio
 
 from disnake.ext import commands
-from database.Database import UsersDataBase
+from database.UserInfoDatabase import UsersDataBase
 
-global_db = UsersDataBase()
+verify_db = UsersDataBase()
 
 class ButtonView(disnake.ui.View):
     def __init__(self):
