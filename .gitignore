@@ -168,7 +168,6 @@ font/
 image/
 database/fileDB/
 
-requirements.txt 
 cogs/Test.py
 
 .vs/
