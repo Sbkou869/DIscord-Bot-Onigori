@@ -22,8 +22,11 @@ class UserPanell(commands.Cog):
         embed.add_field(name='<:Coin:1251937857782808586> Деньги', value=f'```{user[5]}```') 
         embed.add_field(name='<:Ruby:1251937860672684163> Рубины', value=f'```{user[6]}```')  
         embed.add_field(name='<:ChevronUp:1251937855912280115> Уровень', value=f'```{user[2]}```')  
-        embed.add_field(name='<:GlowingStar:1251937859263402145> Опыт', value=f'```{user[3]} / {user[4]}```')  
-        embed.set_thumbnail(url=member.display_avatar.url)  
+        embed.add_field(name='<:GlowingStar:1251937859263402145> Опыт', value=f'```{user[3]} / {user[4]}```')
+        if self.member.avatar:
+            embed.set_thumbnail(url=self.member.avatar.url)
+        else:
+            embed.set_thumbnail(url=self.member.default_avatar.url)
         await interaction.response.send_message(embed=embed)  
     
     @commands.Cog.listener()
