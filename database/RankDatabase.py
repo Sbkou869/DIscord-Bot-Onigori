@@ -29,8 +29,15 @@ class RankDatabase:
                 query = 'SELECT * FROM economy WHERE id = ?'
                 await cursor.execute(query, (user.id,))
                 return await cursor.fetchone()
-    
-    # Метод "add_user" добавляет пользователя в базу данных, если его там нет.
+
+    async def get_coins(self, user: disnake.Member):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'SELECT coins FROM economy WHERE id = ?'
+                await cursor.execute(query, (user.id,))
+                coins = await cursor.fetchone()
+                return coins[0] if coins else None
+
     async def add_user(self, user: disnake.Member):
         async with aiosqlite.connect(self.botDatabase) as db:
             if not await self.get_user(user):
@@ -72,5 +79,23 @@ class RankDatabase:
                 else:
                     print("User not found")
 
-    async def stavka(self, user_id, count):
-        pass
+    async def stavka_dekrement(self, user_id, count):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = f'UPDATE economy SET coins = coins - ? WHERE id = ?'
+                await cursor.execute(query, (count, user_id))
+                await db.commit()
+
+    async def stavka_increment(self, user_id, count):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = f'UPDATE economy SET coins = coins + ? WHERE id = ?'
+                await cursor.execute(query, (count, user_id))
+                await db.commit()
+
+    async def stavka_vabank(self, user_id, count):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = f'UPDATE economy SET coins = coins + ? WHERE id = ?'
+                await cursor.execute(query, (count, user_id))
+                await db.commit()
