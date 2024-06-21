@@ -167,5 +167,5 @@ cython_debug/
 font/ 
 image/
 
-
+.idea
 .vs/
