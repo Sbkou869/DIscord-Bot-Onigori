@@ -38,6 +38,14 @@ class RankDatabase:
                 coins = await cursor.fetchone()
                 return coins[0] if coins else None
 
+    async def get_rubyns(self, user: disnake.Member):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'SELECT rubins FROM economy WHERE id = ?'
+                await cursor.execute(query, (user.id,))
+                rubins = await cursor.fetchone()
+                return rubins[0] if rubins else None
+
     async def add_user(self, user: disnake.Member):
         async with aiosqlite.connect(self.botDatabase) as db:
             if not await self.get_user(user):
@@ -98,4 +106,11 @@ class RankDatabase:
             async with db.cursor() as cursor:
                 query = f'UPDATE economy SET coins = coins + ? WHERE id = ?'
                 await cursor.execute(query, (count, user_id))
+                await db.commit()
+
+    async def buy_coins(self, user_id, sum_coins, rubins):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = f'UPDATE economy SET coins = coins + ?, rubins = rubins - ? WHERE id = ?'
+                await cursor.execute(query, (sum_coins, rubins, user_id))
                 await db.commit()
