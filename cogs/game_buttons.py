@@ -1,6 +1,7 @@
 import disnake
 import datetime
 import random
+from disnake.ext import commands
 from database.RankDatabase import RankDatabase
 
 global_db = RankDatabase()
@@ -90,10 +91,9 @@ class CostiModalMoney(disnake.ui.Modal):
 
 
 class CostiButtons(disnake.ui.View):
-    def __init__(self, member: disnake.Member, global_db):
+    def __init__(self, member: disnake.Member):
         super().__init__(timeout=None)
         self.member = member
-        self.global_db = global_db
 
     @disnake.ui.button(label="Сделать ставку за монеты", style=disnake.ButtonStyle.blurple)
     async def btMoneyStavka(self, button: disnake.ui.Button, interaction: disnake.Interaction):
@@ -178,7 +178,7 @@ class CostiButtons(disnake.ui.View):
     @disnake.ui.button(label="Назад", style=disnake.ButtonStyle.gray)
     async def btBack(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
         try:
-            view = GameButtons(self.member, self.global_db)
+            view = GameButtons(self.member)
             await interaction.response.defer()
 
             embed = disnake.Embed(
@@ -194,19 +194,106 @@ class CostiButtons(disnake.ui.View):
             await interaction.response.send_message(f"Ошибка: {e}")
 
 
+class SelectShop(disnake.ui.Select):
+    def __init__(self, member:disnake.Member):
+        self.member = member
+        options = [
+            disnake.SelectOption(
+                label="1. Пак базовый ",
+                value="base",
+                emoji="<:GlowingStar:1251937859263402145>"
+            ),
+            disnake.SelectOption(
+                label="2. Пак продвинутый",
+                value="adept",
+                emoji="<:GlowingStar:1251937859263402145>"
+            ),
+            disnake.SelectOption(
+                label="3. Пак богач",
+                value="main",
+                emoji="<:GlowingStar:1251937859263402145>"
+            ),
+            disnake.SelectOption(
+                label="4. Пак ультра ",
+                value="ultra",
+                emoji="<:GlowingStar:1251937859263402145>"
+            ),
+            disnake.SelectOption(
+                label="5. Пак милионера",
+                value="milioner",
+                emoji="<:GlowingStar:1251937859263402145>"
+            ),
+        ]
+        super().__init__(placeholder="Выберите пак", options=options, custom_id="magazin", min_values=1, max_values = 1)
+
+    async def callback(self, interaction: disnake.MessageInteraction):
+        await interaction.response.defer()
+
+        chosen_value = interaction.values[0]
+
+        if chosen_value == "base":
+            price = 20
+            curent_ruby = await global_db.get_rubyns(self.member)
+            if curent_ruby < price:
+                await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
+            else:
+                await global_db.buy_coins(self.member.id, 60000+10000, price)
+                await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
+                                                ephemeral=True)
+
+        elif chosen_value == "adept":
+            price = 80
+            curent_ruby = await global_db.get_rubyns(self.member)
+            if curent_ruby < price:
+                await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
+            else:
+                await global_db.buy_coins(self.member.id, 100000 + 25000, price)
+                await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
+                                                ephemeral=True)
+
+        elif chosen_value == "main":
+            price = 170
+            curent_ruby = await global_db.get_rubyns(self.member)
+            if curent_ruby < price:
+                await interaction.response.send_message("У вас недостаточно рубинов.", ephemeral = True)
+            else:
+                await global_db.buy_coins(self.member.id, 250000 + 50000, price)
+                await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
+                                                ephemeral=True)
+
+        elif chosen_value == "ultra":
+            price = 300
+            curent_ruby = await global_db.get_rubyns(self.member)
+            if curent_ruby < price:
+                await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
+            else:
+                await global_db.buy_coins(self.member.id, 500000 + 200000, price)
+                await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
+                                                ephemeral=True)
+        elif chosen_value == "milioner":
+            price = 550
+            curent_ruby = await global_db.get_rubyns(self.member)
+            if curent_ruby < price:
+                await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
+            else:
+                await global_db.buy_coins(self.member.id, 700000 + 500000, price)
+                await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
+                                                ephemeral=True)
+
+        print(f"Пользователь {interaction.author} выбрал: {chosen_value}")
+
 class GameButtons(disnake.ui.View):
-    def __init__(self, member: disnake.Member, global_db):
+    def __init__(self, member: disnake.Member):
         super().__init__(timeout=None)
         self.member = member
-        self.global_db = global_db
 
     @disnake.ui.button(label="Кости", style=disnake.ButtonStyle.green)
     async def btroulette(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         try:
             member = self.member
-            user = await self.global_db.get_user(member)
+            user = await global_db.get_user(member)
 
-            view = CostiButtons(member, self.global_db)
+            view = CostiButtons(member)
 
             embed = disnake.Embed(
                 title="Кости",
@@ -227,6 +314,38 @@ class GameButtons(disnake.ui.View):
         except Exception as e:
             await interaction.response.send_message(f"Ошибка: {e}")
 
+    @disnake.ui.button(label="Магазин", style=disnake.ButtonStyle.blurple)
+    async def btMagazin(self, button: disnake.ui.Button, interaction: disnake.Interaction):
+        try:
+            member = self.member
+            view = disnake.ui.View(timeout=None)
+            user = await global_db.get_user(member)
 
-def setup(bot):
+
+            view = view.add_item(SelectShop(member))
+
+            embed = disnake.Embed(
+                title="Магазин",
+                description=(
+                    f"**Вы можете купить монеты за рубины:.**\n\n"
+                    f"**`1` - <:Ruby:1251937860672684163> `20`  => <:Coin:1251937857782808586> `60.000 + 10.000` **\n"
+                    f"**`2` - <:Ruby:1251937860672684163> `80`  => <:Coin:1251937857782808586> `100.000 + 25.000` **\n"
+                    f"**`3` - <:Ruby:1251937860672684163> `170` => <:Coin:1251937857782808586> `250.000 + 50.000` **\n"
+                    f"**`4` - <:Ruby:1251937860672684163> `300` => <:Coin:1251937857782808586> `500.000 + 200.000` **\n"
+                    f"**`5` - <:Ruby:1251937860672684163> `550` => <:Coin:1251937857782808586> `700.000 + 500.000` **\n"
+                ),
+                color=disnake.Color.red(),
+            )
+
+            embed.add_field(name='<:Coin:1251937857782808586> Деньги', value=f'```{user[5]}```')
+            embed.add_field(name='<:Ruby:1251937860672684163> Рубины', value=f'```{user[6]}```')
+            embed.set_image(file=disnake.File("image/icons/Magazin_Coin.png"))
+
+            await interaction.response.edit_message(embed=embed, view=view)
+
+        except Exception as e:
+            await interaction.response.send_message(f"Ошибка: {e}")
+
+
+def setup (bot):
     pass
