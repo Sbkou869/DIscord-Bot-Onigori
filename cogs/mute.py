@@ -16,7 +16,7 @@ class Timeout(commands.Cog):
         )
 
     @commands.slash_command(description="Снять ограничения")
-    async def un_mute(self, interaction, member: disnake.Member):
+    async def unmute(self, interaction, member: disnake.Member):
         await member.timeout(until=None, reason=None)
         await interaction.response.send_message(
             f"Пользователь {member.mention} был разтайм-аутен",

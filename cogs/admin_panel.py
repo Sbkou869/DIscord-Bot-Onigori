@@ -10,6 +10,11 @@ from database.LogsDatabase import LogsDatabase
 log_db = LogsDatabase()
 user_db = UsersDataBase()
 
+
+
+
+
+
 class ModalDeleteWarn(disnake.ui.Modal):
     def __init__(self, member: disnake.Member):
         self.member = member
@@ -222,7 +227,7 @@ class Admin(commands.Cog):
     async def panel_admin_help(self, interaction: disnake.ApplicationCommandInteraction):
         embed = disnake.Embed(
             title="Команды панели администратора",
-            description="*`/mute [user] [time]` - Замьтить мользователя**\n\n"
+            description="**`/mute [user] [time]` - Замьтить мользователя**\n\n"
                         "**`/unmute [user]` - Размьтить пользователя**\n\n"
                         "**`/ban` [user]` - Забанить пользователя**\n\n"
                         "**`/user_panel [user]` - Управление пользователем**\n\n",

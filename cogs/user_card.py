@@ -15,10 +15,10 @@ class UserPanell(commands.Cog):
         if not member:
             member = interaction.author
         await rank_db.add_user(member)
-        user = await rank_db.get_user(member)  
+        user = await rank_db.get_user(member)
         
         embed = disnake.Embed(color=0xf24e4e, title=f'Карточка пользователя - {user[1]}')
-        embed.add_field(name='<:Coin:1251937857782808586> Деньги', value=f'```{user[5]}```') 
+        embed.add_field(name='<:Coin:1251937857782808586> Монеты', value=f'```{user[5]}```')
         embed.add_field(name='<:Ruby:1251937860672684163> Рубины', value=f'```{user[6]}```')  
         embed.add_field(name='<:ChevronUp:1251937855912280115> Уровень', value=f'```{user[2]}```')  
         embed.add_field(name='<:GlowingStar:1251937859263402145> Опыт', value=f'```{user[3]} / {user[4]}```')
