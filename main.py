@@ -4,6 +4,7 @@ import os
 import sys
 from dotenv import load_dotenv
 from database.UserInfoDatabase import UsersDataBase
+from database.backupDB import scheduled_backup
 
 load_dotenv("config/config.env")
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -30,7 +31,8 @@ async def on_ready():
         name="Watching YouTube",
         url="https://www.youtube.com/watch?v=y3Q2fRqLlFk"
     ))
-    
+  await scheduled_backup()
+
 for file in os.listdir("./cogs"):
     if file.endswith(".py"):
         bot.load_extension(f"cogs.{file[:-3]}")
