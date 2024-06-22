@@ -10,7 +10,6 @@ class UserPanell(commands.Cog):
         self.bot = bot
         
     @commands.slash_command(name="mycard", description="Карточка пользователя")
-    @commands.is_owner()
     async def mycard(self, interaction, member: disnake.Member = None):
         await rank_db.create_table()  
         if not member:
@@ -23,10 +22,10 @@ class UserPanell(commands.Cog):
         embed.add_field(name='<:Ruby:1251937860672684163> Рубины', value=f'```{user[6]}```')  
         embed.add_field(name='<:ChevronUp:1251937855912280115> Уровень', value=f'```{user[2]}```')  
         embed.add_field(name='<:GlowingStar:1251937859263402145> Опыт', value=f'```{user[3]} / {user[4]}```')
-        if self.member.avatar:
-            embed.set_thumbnail(url=self.member.avatar.url)
+        if member.avatar:
+            embed.set_thumbnail(url=member.avatar.url)
         else:
-            embed.set_thumbnail(url=self.member.default_avatar.url)
+            embed.set_thumbnail(url=member.default_avatar.url)
         await interaction.response.send_message(embed=embed)  
     
     @commands.Cog.listener()
@@ -39,6 +38,7 @@ class UserPanell(commands.Cog):
             await rank_db.add_user(message.author)
             await rank_db.update_level(message.author.id)   
             await rank_db.update_score(message.author.id)
-    
+
+
 def setup(bot):
     bot.add_cog(UserPanell(bot))
