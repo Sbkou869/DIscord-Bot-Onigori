@@ -22,12 +22,12 @@ class RankDatabase:
                                         rubins INTEGER NULL
                                     )''')
                 await db.commit()
-                
-    async def get_user(self, user: disnake.Member):
+
+    async def get_user(self, user_id: int):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 query = 'SELECT * FROM economy WHERE id = ?'
-                await cursor.execute(query, (user.id,))
+                await cursor.execute(query, (user_id,))
                 return await cursor.fetchone()
 
     async def get_coins(self, user: disnake.Member):
@@ -54,11 +54,18 @@ class RankDatabase:
                     await cursor.execute(query, (user.id, user.name, 1, 100, 0, 0, 0))
                     await db.commit()
                     
-    async def update_money(self, user: disnake.Member, coins: int, rubins: int):
+    async def update_money(self, user: disnake.Member, coins: int):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
-                query = 'UPDATE economy SET coins = coins + ?, rubins = rubins + ? WHERE id = ?'
-                await cursor.execute(query, (coins, rubins, user.id))
+                query = 'UPDATE economy SET coins = coins + ? WHERE id = ?'
+                await cursor.execute(query, (coins, user.id))
+                await db.commit()
+
+    async def update_ruby(self, user: disnake.Member, rubins: int):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'UPDATE economy SET rubins = rubins + ? WHERE id = ?'
+                await cursor.execute(query, (rubins, user.id))
                 await db.commit()
                 
     async def update_score(self, user_id):
@@ -114,3 +121,24 @@ class RankDatabase:
                 query = f'UPDATE economy SET coins = coins + ?, rubins = rubins - ? WHERE id = ?'
                 await cursor.execute(query, (sum_coins, rubins, user_id))
                 await db.commit()
+
+    async def get_top_money(self):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'SELECT * FROM economy ORDER BY coins DESC'
+                await cursor.execute(query)
+                return await cursor.fetchall()
+
+    async def get_top_ruby(self):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'SELECT * FROM economy ORDER BY rubins DESC'
+                await cursor.execute(query)
+                return await cursor.fetchall()
+
+    async def get_top_score(self):
+        async with aiosqlite.connect(self.botDatabase) as db:
+            async with db.cursor() as cursor:
+                query = 'SELECT * FROM economy ORDER BY score DESC'
+                await cursor.execute(query)
+                return await cursor.fetchall()
