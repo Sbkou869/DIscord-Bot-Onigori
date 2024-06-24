@@ -1,4 +1,5 @@
 import disnake
+import datetime
 from disnake.ext import commands
 from database.RankDatabase import RankDatabase
 
@@ -20,7 +21,7 @@ class PaginatorView(disnake.ui.View):
                 emb.set_footer(text=f'Страница {self.embeds.index(emb) + 1} из {len(self.embeds)}')
 
     # Создаем кнопку "Назад" со стрелкой влево.
-    @disnake.ui.button(emoji= '<:GoBack:1254122799023525888>', style=disnake.ButtonStyle.grey)
+    @disnake.ui.button(emoji= '<:GoBack:1254674151478657126>', style=disnake.ButtonStyle.grey)
     async def back(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         # Проверяем, что автор кнопки совпадает с автором интерфейса.
         if self.author.id == interaction.author.id:
@@ -34,7 +35,7 @@ class PaginatorView(disnake.ui.View):
         await self.button_callback(interaction)
 
     # Создаем кнопку "Вперед" со стрелкой вправо.
-    @disnake.ui.button(emoji='<:CircledRight:1254122797152866314>', style=disnake.ButtonStyle.grey)
+    @disnake.ui.button(emoji='<:CircledRight:1254674149863854090>', style=disnake.ButtonStyle.grey)
     async def next(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         # Проверяем, что автор кнопки совпадает с автором интерфейса.
         if self.author.id == interaction.author.id:
@@ -65,7 +66,7 @@ class Top(commands.Cog):
         pass
 
     @top.sub_command(name="money", description="Топ по монетам")
-    async def top_money(self, interaction):
+    async def money(self, interaction):
         top = await RANG_DB.get_top_money()
         embeds = []
         loop_count = 0
@@ -74,18 +75,18 @@ class Top(commands.Cog):
         for user in top:
             n += 1
             loop_count += 1
-            text += f'**{n}. {self.bot.get_user(user[0])} - {user[5]}**<:Coin:1251937857782808586> \n'
+            text += f'**{n}. {self.bot.get_user(user[0])} - {user[5]} <:Coin:1251937857782808586>**\n'
             if loop_count % 10 == 0 or loop_count == len(top):
-                embed = disnake.Embed(color=0x2F3136, title='Топ пользователей по монетам')
+                embed = disnake.Embed(color=disnake.Color.old_blurple(), title='Топ пользователей по монетам')
                 embed.description = text
-                embed.set_thumbnail(url=interaction.user.display_avatar.url)  # Правильное поле user
+                embed.timestamp = datetime.datetime.now()
                 embeds.append(embed)
                 text = ''
         view = PaginatorView(embeds, interaction.user, True)
         await interaction.response.send_message(embed=embeds[0], view=view)
 
     @top.sub_command(name="ruby", description="Топ по рубинам")
-    async def top_ruby(self, interaction):
+    async def ruby(self, interaction):
         top = await RANG_DB.get_top_ruby()
         embeds = []
         loop_count = 0
@@ -94,18 +95,18 @@ class Top(commands.Cog):
         for user in top:
             n += 1
             loop_count += 1
-            text += f'**{n}. {self.bot.get_user(user[0])} - {user[6]}**<:Ruby:1251937860672684163> \n'
+            text += f'**{n}. {self.bot.get_user(user[0])} - {user[6]} <:Ruby:1251937860672684163>**\n'
             if loop_count % 10 == 0 or loop_count == len(top):
-                embed = disnake.Embed(color=0x2F3136, title='Топ пользователей по рубинам')
+                embed = disnake.Embed(color=disnake.Color.old_blurple(), title='Топ пользователей по рубинам')
                 embed.description = text
-                embed.set_thumbnail(url=interaction.user.display_avatar.url)  # Правильное поле user
+                embed.timestamp = datetime.datetime.now()
                 embeds.append(embed)
                 text = ''
         view = PaginatorView(embeds, interaction.user, True)
         await interaction.response.send_message(embed=embeds[0], view=view)
 
     @top.sub_command(name="score", description="Топ по опыту")
-    async def top_score(self, interaction):
+    async def score(self, interaction):
         top = await RANG_DB.get_top_score()
         embeds = []
         loop_count = 0
@@ -114,11 +115,11 @@ class Top(commands.Cog):
         for user in top:
             n += 1
             loop_count += 1
-            text += f'**{n}. {self.bot.get_user(user[0])} - {user[3]}**<:GlowingStar:1251937859263402145> \n'
+            text += f'**{n}. {self.bot.get_user(user[0])} - {user[3]} <:GlowingStar:1251937859263402145>**\n'
             if loop_count % 10 == 0 or loop_count == len(top):
-                embed = disnake.Embed(color=0x2F3136, title='Топ пользователей по опыту')
+                embed = disnake.Embed(color=disnake.Color.old_blurple(), title='Топ пользователей по опыту')
                 embed.description = text
-                embed.set_thumbnail(url=interaction.user.display_avatar.url)  # Правильное поле user
+                embed.timestamp = datetime.datetime.now()
                 embeds.append(embed)
                 text = ''
         view = PaginatorView(embeds, interaction.user, True)
