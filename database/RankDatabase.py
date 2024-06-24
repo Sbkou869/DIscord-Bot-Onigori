@@ -48,7 +48,7 @@ class RankDatabase:
 
     async def add_user(self, user: disnake.Member):
         async with aiosqlite.connect(self.botDatabase) as db:
-            if not await self.get_user(user):
+            if not await self.get_user(user.id):
                 async with db.cursor() as cursor:
                     query = 'INSERT INTO economy (id, userName, level, score, new_score, coins, rubins) VALUES (?, ?, ?, ?, ?, ?, ?)'
                     await cursor.execute(query, (user.id, user.name, 1, 100, 0, 0, 0))
