@@ -40,7 +40,7 @@ class UsersDataBase:
                 await cursor.execute(query, (warn, member_id))
                 await db.commit()
     
-    async def check_user_warn(self, member_id):
+    async def check_user_warndb(self, member_id):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 query_check = '''SELECT * FROM warns WHERE userID = ?'''
