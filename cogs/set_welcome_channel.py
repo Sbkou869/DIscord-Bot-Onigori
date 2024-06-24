@@ -14,24 +14,16 @@ class Set_WelcomeChannel(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def set_welcome_channel(self, interaction: disnake.ApplicationCommandInteraction, channel_id: disnake.TextChannel):
         await welcome_db.create_table()
-        await welcome_db.add_welcome_channel(interaction.guild, channel_id)
+        await welcome_db.add_welcome_channel(channel_id, interaction.guild)
         
-        log_channel = await log_db.get_log_channel(interaction.guild)
-        if log_channel:
-            channel = interaction.guild.get_channel(log_channel) 
-            await channel.send(f"Каналом приветсвия в гильдии {interaction.guild.name} был установлен {channel_id.name} администатором {interaction.author.mention}")
-        else:
-           interaction.response.send_message("В гильдии не установлен канал приветсвия", ephemeral=True) 
-            
+        await interaction.send("Установлено", ephemeral=True)
+        
     @commands.slash_command(description="Удаление канала приветсвия")
     @commands.has_permissions(administrator=True)
     async def remove_welcome_channel(self, interaction: disnake.ApplicationCommandInteraction):
         await welcome_db.remove_channel(interaction.guild)
-        log_channel = await log_db.get_log_channel(interaction.guild)
-        if log_channel:
-            channel = interaction.guild.get_channel(await log_db.get_log_channel(interaction.guild)) 
-            await channel.send(f"Канал приветсвия в гильдии {interaction.guild.name} был удален администатором {interaction.author.mention}")
-    
+        await interaction.send("Удалено", ephemeral=True)
+        
         
 def setup(bot):
     bot.add_cog(Set_WelcomeChannel(bot))

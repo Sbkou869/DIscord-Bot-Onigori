@@ -3,8 +3,6 @@ import datetime
 from disnake.ext import commands
 from database.RankDatabase import RankDatabase
 
-RANG_DB = RankDatabase()
-
 
 class PaginatorView(disnake.ui.View):
     def __init__(self, embeds, author, footer: bool, timeout=30.0):
@@ -60,14 +58,14 @@ class PaginatorView(disnake.ui.View):
 class Top(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
+        self.RANG_DB = RankDatabase(bot)
     @commands.slash_command(name="top", description="Топ по монетам")
     async def top(self, interaction):
         pass
 
     @top.sub_command(name="money", description="Топ по монетам")
     async def money(self, interaction):
-        top = await RANG_DB.get_top_money()
+        top = await self.RANG_DB.get_top_money()
         embeds = []
         loop_count = 0
         n = 0
@@ -87,7 +85,7 @@ class Top(commands.Cog):
 
     @top.sub_command(name="ruby", description="Топ по рубинам")
     async def ruby(self, interaction):
-        top = await RANG_DB.get_top_ruby()
+        top = await self.RANG_DB.get_top_ruby()
         embeds = []
         loop_count = 0
         n = 0
@@ -107,7 +105,7 @@ class Top(commands.Cog):
 
     @top.sub_command(name="score", description="Топ по опыту")
     async def score(self, interaction):
-        top = await RANG_DB.get_top_score()
+        top = await self.RANG_DB.get_top_score()
         embeds = []
         loop_count = 0
         n = 0

@@ -4,14 +4,15 @@ import random
 from disnake.ext import commands
 from database.RankDatabase import RankDatabase
 
-global_db = RankDatabase()
+
 TIME = datetime.datetime.now
 
 
 class CostiModalMoney(disnake.ui.Modal):
-    def __init__(self, member: disnake.Member):
+    def __init__(self, member: disnake.Member, bot):
         self.member = member
-
+        self.bot = bot
+        self.global_db = RankDatabase(bot)
         components = [
             disnake.ui.TextInput(label="Ставка в монетах", placeholder="Введите количество монет на ставку",
                                  custom_id="stavka_money"),
@@ -25,7 +26,7 @@ class CostiModalMoney(disnake.ui.Modal):
         stavka_money = interaction.text_values["stavka_money"]
         try:
             stavka = int(stavka_money)
-            curentMoney = await global_db.get_coins(self.member)
+            curentMoney = await self.global_db.get_coins(self.member)
 
             if stavka > curentMoney:
                 await interaction.response.send_message("У вас недостаточно монет для ставки.")
@@ -39,7 +40,7 @@ class CostiModalMoney(disnake.ui.Modal):
                 bot_sum = num_bot_first + num_bot_last
 
                 if user_sum > bot_sum:
-                    await global_db.stavka_increment(self.member.id, stavka )
+                    await self.global_db.stavka_increment(self.member.id, stavka )
                     embed = disnake.Embed(
                         title="Вы выиграли!",
                         description=f"**Поздравляю вы выиграли - `{stavka}`**",
@@ -70,7 +71,7 @@ class CostiModalMoney(disnake.ui.Modal):
 
                     await interaction.response.send_message(embed=embed)
                 else:
-                    await global_db.stavka_dekrement(self.member.id, stavka)
+                    await self.global_db.stavka_dekrement(self.member.id, stavka)
                     embed = disnake.Embed(
                         title="Вы поиграли!",
                         description=f"**Увы вы проиграли -  `{stavka}`**",
@@ -91,9 +92,11 @@ class CostiModalMoney(disnake.ui.Modal):
 
 
 class CostiButtons(disnake.ui.View):
-    def __init__(self, member: disnake.Member):
+    def __init__(self, member: disnake.Member, bot):
         super().__init__(timeout=None)
         self.member = member
+        self.bot = bot
+        self.global_db = RankDatabase(bot)
 
     @disnake.ui.button(label="Сделать ставку за монеты", style=disnake.ButtonStyle.blurple)
     async def btMoneyStavka(self, button: disnake.ui.Button, interaction: disnake.Interaction):
@@ -101,7 +104,7 @@ class CostiButtons(disnake.ui.View):
             if not self.member:
                 await interaction.response.defer()
             else:
-                await interaction.response.send_modal(CostiModalMoney(self.member))
+                await interaction.response.send_modal(CostiModalMoney(self.member, self.bot))
         except Exception as e:
             await interaction.response.send_message(f"Ошибка: {e}")
 
@@ -111,8 +114,13 @@ class CostiButtons(disnake.ui.View):
             if not self.member:
                 await interaction.response.defer()
             else:
-                try:
-                    curent_money = await global_db.get_coins(self.member)
+                
+                curentMoney = await self.global_db.get_coins(self.member)
+                
+                if curentMoney == 0:
+                    await interaction.response.send_message("У вас недостаточно монет для ставки.")
+                else:
+                    curent_money = await self.global_db.get_coins(self.member)
                     num_user_first = int(random.choice('123456'))
                     num_user_last = int(random.choice('123456'))
                     user_sum = num_user_first + num_user_last
@@ -122,7 +130,7 @@ class CostiButtons(disnake.ui.View):
                     bot_sum = num_bot_first + num_bot_last
 
                     if user_sum > bot_sum:
-                        await global_db.stavka_vabank(self.member.id, curent_money)
+                        await self.global_db.stavka_vabank(self.member.id, curent_money)
                         embed = disnake.Embed(
                             title="Вы выиграли!",
                             description=f"**Поздравляю вы выиграли - `{curent_money}`**",
@@ -153,7 +161,7 @@ class CostiButtons(disnake.ui.View):
 
                         await interaction.response.send_message(embed=embed)
                     else:
-                        await global_db.stavka_dekrement(self.member.id, curent_money)
+                        await self.global_db.stavka_dekrement(self.member.id, curent_money)
                         embed = disnake.Embed(
                             title="Вы поиграли!",
                             description=f"**Увы вы проиграли -  `{curent_money}`**",
@@ -169,16 +177,13 @@ class CostiButtons(disnake.ui.View):
                         embed.add_field(name="Сумма очков бота:", value=f"```{bot_sum}```")
 
                         await interaction.response.send_message(embed=embed)
-                except Exception as e:
-                    await interaction.response.send_message(f"Ошибка: {e}")
-
         except Exception as e:
             await interaction.response.send_message(f"Ошибка: {e}")
 
     @disnake.ui.button(label="Назад", style=disnake.ButtonStyle.gray)
     async def btBack(self, button: disnake.ui.Button, interaction: disnake.MessageInteraction):
         try:
-            view = GameButtons(self.member)
+            view = GameButtons(self.member, self.bot)
             await interaction.response.defer()
 
             embed = disnake.Embed(
@@ -195,8 +200,10 @@ class CostiButtons(disnake.ui.View):
 
 
 class SelectShop(disnake.ui.Select):
-    def __init__(self, member:disnake.Member):
+    def __init__(self, member:disnake.Member, bot):
         self.member = member
+        self.bot = bot
+        self.global_db = RankDatabase(bot)
         options = [
             disnake.SelectOption(
                 label="1. Пак базовый ",
@@ -233,67 +240,69 @@ class SelectShop(disnake.ui.Select):
 
         if chosen_value == "base":
             price = 20
-            curent_ruby = await global_db.get_rubyns(self.member)
+            curent_ruby = await self.global_db.get_rubyns(self.member)
             if curent_ruby < price:
                 await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
             else:
-                await global_db.buy_coins(self.member.id, 60000+10000, price)
+                await self.global_db.buy_coins(self.member.id, 60000+10000, price)
                 await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
                                                 ephemeral=True)
 
         elif chosen_value == "adept":
             price = 80
-            curent_ruby = await global_db.get_rubyns(self.member)
+            curent_ruby = await self.global_db.get_rubyns(self.member)
             if curent_ruby < price:
                 await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
             else:
-                await global_db.buy_coins(self.member.id, 100000 + 25000, price)
+                await self.global_db.buy_coins(self.member.id, 100000 + 25000, price)
                 await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
                                                 ephemeral=True)
 
         elif chosen_value == "main":
             price = 170
-            curent_ruby = await global_db.get_rubyns(self.member)
+            curent_ruby = await self.global_db.get_rubyns(self.member)
             if curent_ruby < price:
                 await interaction.response.send_message("У вас недостаточно рубинов.", ephemeral = True)
             else:
-                await global_db.buy_coins(self.member.id, 250000 + 50000, price)
+                await self.global_db.buy_coins(self.member.id, 250000 + 50000, price)
                 await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
                                                 ephemeral=True)
 
         elif chosen_value == "ultra":
             price = 300
-            curent_ruby = await global_db.get_rubyns(self.member)
+            curent_ruby = await self.global_db.get_rubyns(self.member)
             if curent_ruby < price:
                 await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
             else:
-                await global_db.buy_coins(self.member.id, 500000 + 200000, price)
+                await self.global_db.buy_coins(self.member.id, 500000 + 200000, price)
                 await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
                                                 ephemeral=True)
         elif chosen_value == "milioner":
             price = 550
-            curent_ruby = await global_db.get_rubyns(self.member)
+            curent_ruby = await self.global_db.get_rubyns(self.member)
             if curent_ruby < price:
                 await interaction.followup.send("У вас недостаточно рубинов.", ephemeral = True)
             else:
-                await global_db.buy_coins(self.member.id, 700000 + 500000, price)
+                await self.global_db.buy_coins(self.member.id, 700000 + 500000, price)
                 await interaction.followup.send(f"{self.member.mention} успешно начислено. Проверте баланс: `/mycard`",
                                                 ephemeral=True)
 
         print(f"Пользователь {interaction.author} выбрал: {chosen_value}")
 
 class GameButtons(disnake.ui.View):
-    def __init__(self, member: disnake.Member):
+    def __init__(self, member: disnake.Member, bot):
         super().__init__(timeout=None)
         self.member = member
+        self.bot = bot
+        self.global_db = RankDatabase(bot)
 
     @disnake.ui.button(label="Кости", style=disnake.ButtonStyle.green)
     async def btroulette(self, button: disnake.ui.Button, interaction: disnake.Interaction):
         try:
             member = self.member
-            user = await global_db.get_user(member)
+            user = await self.global_db.get_user(member.id)
 
-            view = CostiButtons(member)
+            view = CostiButtons(member, self.bot)
 
             embed = disnake.Embed(
                 title="Кости",
@@ -319,10 +328,10 @@ class GameButtons(disnake.ui.View):
         try:
             member = self.member
             view = disnake.ui.View(timeout=None)
-            user = await global_db.get_user(member)
+            user = await self.global_db.get_user(member.id)
 
 
-            view = view.add_item(SelectShop(member))
+            view = view.add_item(SelectShop(member, self.bot))
 
             embed = disnake.Embed(
                 title="Магазин",

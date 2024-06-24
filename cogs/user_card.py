@@ -3,19 +3,20 @@ import disnake
 from disnake.ext import commands
 from database.RankDatabase import RankDatabase
 
-rank_db = RankDatabase()
+
 
 class UserPanell(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        
+    
+        self.rank_db = RankDatabase(self.bot)
     @commands.slash_command(name="mycard", description="Карточка пользователя")
     async def mycard(self, interaction, member: disnake.Member = None):
-        await rank_db.create_table()  
+        await self.rank_db.create_table()  
         if not member:
             member = interaction.author
-        await rank_db.add_user(member)
-        user = await rank_db.get_user(member)
+        await self.rank_db.add_user(member)
+        user = await self.rank_db.get_user(member.id)
         
         embed = disnake.Embed(color=0xf24e4e, title=f'Карточка пользователя - {user[1]}')
         embed.add_field(name='<:Coin:1251937857782808586> Монеты', value=f'```{user[5]}```')
@@ -35,9 +36,10 @@ class UserPanell(commands.Cog):
         elif len(message.content) == 1:
             return
         else:
-            await rank_db.add_user(message.author)
-            await rank_db.update_level(message.author.id)   
-            await rank_db.update_score(message.author.id)
+            await self.rank_db.create_table()
+            await self.rank_db.add_user(message.author)
+            await self.rank_db.update_level(message.author.id)   
+            await self.rank_db.update_score(message.author.id)
 
 
 def setup(bot):

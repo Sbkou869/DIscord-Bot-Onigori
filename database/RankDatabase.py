@@ -6,7 +6,8 @@ from disnake.ext import commands
 rnd_score = random.randint(3, 16)
 
 class RankDatabase:
-    def __init__(self):
+    def __init__(self, bot):
+        self.bot = bot
         self.botDatabase = "database/fileDB/BotDDatabase.db"
         
     async def create_table(self):
@@ -46,12 +47,12 @@ class RankDatabase:
                 rubins = await cursor.fetchone()
                 return rubins[0] if rubins else None
 
-    async def add_user(self, user: disnake.Member):
+    async def add_user(self, member: disnake.Member):
         async with aiosqlite.connect(self.botDatabase) as db:
-            if not await self.get_user(user.id):
+            if not await self.get_user(member.id):
                 async with db.cursor() as cursor:
                     query = 'INSERT INTO economy (id, userName, level, score, new_score, coins, rubins) VALUES (?, ?, ?, ?, ?, ?, ?)'
-                    await cursor.execute(query, (user.id, user.name, 1, 100, 0, 0, 0))
+                    await cursor.execute(query, (member.id, member.name, 1, 100, 0, 0, 0))
                     await db.commit()
                     
     async def update_money(self, user: disnake.Member, coins: int):
@@ -82,7 +83,7 @@ class RankDatabase:
                 result = await cursor.fetchone()
                 if result:
                     score, level = result
-                    new_level_score = 2 ** level * 100  # Удвоение необходимого количества очков для нового уровня
+                    new_level_score = 2 ** level * 100  # Рассчитываем необходимое количество очков для достижения нового уровня
 
                     if score >= new_level_score:
                         await cursor.execute('''
@@ -90,9 +91,16 @@ class RankDatabase:
                             SET level = level + 1, rubins = rubins + 15, coins = coins + 500, new_score = ?
                             WHERE id = ?
                         ''', (new_level_score * 2, user_id))
-                    await db.commit()
+                        await db.commit()
+                        
+                        user = await self.bot.fetch_user(user_id)
+                        await user.send(f"Ваш уровень повысился. Ваша награда: 15 рубинов и 500 монет.")
+                        print(f"Не удалось найти текстовый канал 'название_текстового_канала'")
+                    else:
+                        print("У пользователя недостаточно очков для повышения уровня.")
                 else:
-                    print("User not found")
+                    print("Пользователь не найден в базе данных экономики.")
+
 
     async def stavka_dekrement(self, user_id, count):
         async with aiosqlite.connect(self.botDatabase) as db:
