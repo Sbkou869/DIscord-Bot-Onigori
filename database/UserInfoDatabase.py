@@ -7,7 +7,7 @@ class UsersDataBase:
         self.botDatabase = "database/fileDB/BotDDatabase.db"
     
     async def create_table(self):
-        async with aiosqlite.connect(self.userdb) as db:
+        async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
                 await cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                                         userID INTEGER PRIMARY KEY AUTOINCREMENT,

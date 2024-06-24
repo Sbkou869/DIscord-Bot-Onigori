@@ -18,7 +18,7 @@ async def backup_database():
 
 
 async def scheduled_backup():
-    schedule.every().thursday.at("05:00").do(backup_database)
+    schedule.every().thursday.at("22:00").do(backup_database)
 
     while True:
         await asyncio.sleep(60)

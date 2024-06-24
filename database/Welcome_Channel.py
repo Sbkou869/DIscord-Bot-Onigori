@@ -18,13 +18,9 @@ class WelcomeChannel:
     async def get_welcome_channel(self, guild: disnake.Guild):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
-                await cursor.execute('SELECT channelId FROM welcomeChannel WHERE guildId = ?', (guild.id))
+                await cursor.execute('SELECT channelId FROM welcomeChannel WHERE guildId = ?', (guild.id,))
                 result = await cursor.fetchone()
-                
-                if result == None:
-                    return False
-                else:
-                    True
+                return guild.get_channel(result[0]) if result else None
     
     async def add_welcome_channel(self, channel: disnake.TextChannel, guild: disnake.Guild):
         async with aiosqlite.connect(self.botDatabase) as db:
