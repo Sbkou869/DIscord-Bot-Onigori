@@ -165,7 +165,8 @@ cython_debug/
 
 
 font/ 
-image/
+image/icons/
+image/rang/
 database/fileDB/
 .idea
 .vs/
