@@ -19,7 +19,7 @@ global_db = UsersDataBase()
 intents = disnake.Intents.all()
 intents.message_content = True
 prefix = os.getenv('PREFIX')
-bot = commands.Bot(command_prefix=prefix, intents=intents, test_guilds=[1155576584523231373])
+bot = commands.Bot(command_prefix=prefix, intents=intents)
 bot.remove_command("help")
 
 
