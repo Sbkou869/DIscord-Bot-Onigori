@@ -29,7 +29,7 @@ class LogsDatabase:
                 query_check = '''SELECT channelLogsID FROM logsChanel WHERE guildID = ?'''
                 await cursor.execute(query_check, (guild.id,))
                 channelLogsID = await cursor.fetchone()
-                return channelLogsID[0] if channelLogsID else None
+                return channelLogsID[0] if channelLogsID else print("В гильдии не установлен канал логирования.")
             
     async def remove_log_channel(self, guild: disnake.Guild):
         async with aiosqlite.connect(self.botDatabase) as db:

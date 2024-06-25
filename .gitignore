@@ -162,12 +162,11 @@ cython_debug/
 #.idea/
 
 
-/config/config.env
+
 
 font/ 
-image/
+image/icons/
+image/rang/
 database/fileDB/
-
-cogs/Test.py
-
+.idea
 .vs/
