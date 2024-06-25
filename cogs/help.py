@@ -52,7 +52,9 @@ class ButtonHelp(disnake.ui.View):
                               "**`/remove_log_channel ` - Удалить канал логирования**\n"
                               "**`/clear ` - Очистка чата**\n"
                               "**`/add_admin` - Добавить администатора в список**\n"
-                              "**`/del_admin` - Удалить администаратора из списка**\n",
+                              "**`/del_admin` - Удалить администаратора из списка**\n"
+                              "**`/set_autorole` - Установить роль для автовыдачи**\n"
+                              "**`/remove_autorole` - Удалить роль для автовыдачи**\n",
                 color=disnake.Color.old_blurple()
             )
             embed.timestamp = datetime.datetime.now()
