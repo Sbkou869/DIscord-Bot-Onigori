@@ -16,13 +16,21 @@ class AutoRoleDanabase:
                                     )''')
                 await db.commit()
     
-    async def add_autorole(self, guild: disnake.Guild, role: disnake.Role):
+    async def add_autorole(self, guild, role):
+        query_select = "SELECT * FROM autorole WHERE guildID = ?"
+        query_insert = "INSERT INTO autorole (guildID, roleID) VALUES (?, ?)"
+        query_update = "UPDATE autorole SET roleID = ? WHERE guildID = ?"
+
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
-                query = '''INSERT INTO autorole (guildID, roleID) VALUES (?, ?)'''
-                await cursor.execute(query, (guild.id, role.id))
-                await db.commit()
-                
+                await cursor.execute(query_select, (guild.id,))
+                result = await cursor.fetchone()
+                if result:
+                    await cursor.execute(query_update, (role.id, guild.id))
+                else:
+                    await cursor.execute(query_insert, (guild.id, role.id))
+            await db.commit()
+    
     async def get_autorole(self, guild: disnake.Guild):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
