@@ -12,7 +12,7 @@ class UserPanell(commands.Cog):
         self.rank_db = RankDatabase(self.bot)
     @commands.slash_command(name="mycard", description="Карточка пользователя")
     async def mycard(self, interaction, member: disnake.Member = None):
-        await self.rank_db.create_table()  
+        await self.rank_db.create_table()
         if not member:
             member = interaction.author
         await self.rank_db.add_user(member)
