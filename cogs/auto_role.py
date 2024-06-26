@@ -39,7 +39,8 @@ class AutoRole(commands.Cog):
     async def on_member_join(self, member: disnake.Member):
         guild = member.guild
         role = await self.auto_role.get_autorole(guild)
-        await member.add_roles(role)
+        if role:
+            await member.add_roles(role)
         
 
 def setup(bot):

@@ -28,8 +28,7 @@ class GuildPanel(commands.Cog):
             welcome = "Не установлен"
         if not logs:
             logs = "Не установлен"
-        if not autorole:
-            autorole = "Не установлена"
+        autorole_name = autorole.name if autorole else "Не установлена"
         embed = disnake.Embed(
             title=f"Информация о гильдии {guild.name}",
             description=f"**ID гильдии: `{guild.id}`**",
@@ -38,7 +37,7 @@ class GuildPanel(commands.Cog):
         embed.add_field(name="Владелец", value=f"`{owner}`")
         embed.add_field(name="Канал логирования", value=f"`{logs}`")
         embed.add_field(name="Канал приветсвия", value=f"`{welcome}`")
-        embed.add_field(name="Роль автовыдачи", value=f"`{autorole}`")
+        embed.add_field(name="Роль автовыдачи", value=f"`{autorole_name}`")
         embed.add_field(name="Количество участников", value=f"`{member}`")
         embed.add_field(name="Создана", value=f"`{guild.created_at.strftime('%d.%m.%Y %H:%M:%S')}`")
         

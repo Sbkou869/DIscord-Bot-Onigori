@@ -41,7 +41,7 @@ class AutoRoleDanabase:
                     role_id = autorole[0]
                     role = disnake.utils.get(guild.roles, id=role_id)
                     if role:
-                        return role.name  # Возвращает имя роли
+                        return role  # Возвращаем объект роли
                 return None
 
                     

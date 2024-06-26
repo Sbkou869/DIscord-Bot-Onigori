@@ -15,7 +15,7 @@ class Welcome(commands.Cog):
         channel = await welcome_db.get_welcome_channel(guild)
         
         if isinstance(channel, disnake.abc.Messageable):  # Check if channel is a valid messageable object
-            background = Editor("image\welcome_baner\pic.jpg")
+            background = Editor("image/welcome_baner/pic.jpg")
             if member.avatar:
                 profile_image = await load_image_async(str(member.avatar.url))
             else:
