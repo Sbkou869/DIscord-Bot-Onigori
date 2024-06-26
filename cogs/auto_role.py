@@ -15,6 +15,7 @@ class AutoRole(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def setautorole(self, interaction, role: disnake.Role):
         await self.auto_role.add_autorole(interaction.guild, role)
+        await interaction.send(f"В качестве автороли была установлена {role.mention}", ephemeral=True)
         log = await self.logs.get_log_channel(interaction.guild)
         if not log:
             await interaction.send(f"В гильдии не установлен канал логирования. Используйте  - `/sel_log`", ephemeral=True)
@@ -26,6 +27,7 @@ class AutoRole(commands.Cog):
     @commands.has_permissions(administrator=True)
     async def removeautorole(self, interaction):
         await self.auto_role.remove_autorole(interaction.guild)
+        await interaction.send(f"Вы удалили автороль", ephemeral=True)
         log = await self.logs.get_log_channel(interaction.guild)
         if not log:
             await interaction.send(f"В гильдии не установлен канал логирования. Используйте  - `/sel_log`", ephemeral=True)

@@ -40,8 +40,10 @@ class AutoRoleDanabase:
                 if autorole:
                     role_id = autorole[0]
                     role = disnake.utils.get(guild.roles, id=role_id)
-                    return role
+                    if role:
+                        return role.name  # Возвращает имя роли
                 return None
+
                     
     async def remove_autorole(self, guild: disnake.Guild):
         async with aiosqlite.connect(self.botDatabase) as db:

@@ -19,7 +19,7 @@ class GuildPanel(commands.Cog):
         
         welcome = await self.welcome_db.get_welcome_channel(guild)
         
-        autorole = guild.get_role(await self.autorole_db.get_autorole(guild))
+        autorole = await self.autorole_db.get_autorole(guild)
         
         member = guild.member_count
         
