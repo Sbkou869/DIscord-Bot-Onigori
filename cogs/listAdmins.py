@@ -12,7 +12,7 @@ class AdminList(commands.Cog):
     @commands.slash_command(name="admin_list", description="Администрация сервера")
     async def admins(self, interaction):
         await admin_db.create_table_admins_list()
-        top = await admin_db.get_admins_sorted()
+        top = await admin_db.get_admins_sorted(interaction.guild)
         
         if not top:
             await interaction.response.send_message("Список администраторов пуст.", ephemeral=True)
