@@ -30,11 +30,11 @@ class AdminListDatabase:
                 await cursor.execute(query, (member.name,))
                 return await cursor.fetchone()
 
-    async def get_admins_sorted(self):
+    async def get_admins_sorted(self, guild_id):
         async with aiosqlite.connect(self.botDatabase) as db:
             async with db.cursor() as cursor:
-                query = 'SELECT * FROM adminsList ORDER BY guildID, adminName'
-                await cursor.execute(query)
+                query = 'SELECT * FROM adminsList WHERE guildID = ? ORDER BY adminName'
+                await cursor.execute(query, (guild_id,))
                 return await cursor.fetchall()
 
     async def remove_admin(self, member: disnake.Member):
