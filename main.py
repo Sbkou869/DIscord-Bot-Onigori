@@ -33,6 +33,7 @@ async def on_ready():
         name="Watching YouTube",
         url="https://www.youtube.com/watch?v=y3Q2fRqLlFk"
     ))
+  await scheduled_backup()
   
   logs_db = LogsDatabase()
   users_db = UsersDataBase()
