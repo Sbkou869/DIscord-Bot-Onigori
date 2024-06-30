@@ -10,6 +10,7 @@ from database.AdminsListDB import AdminListDatabase
 from database.AutoroleDB import AutoRoleDanabase
 from database.LogsDatabase import LogsDatabase
 from database.Welcome_Channel import WelcomeChannel
+from database.VoiceRoomDB import VoiceRoom
 
 
 load_dotenv("config/config.env")
