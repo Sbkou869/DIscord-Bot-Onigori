@@ -3,14 +3,12 @@ from disnake.ext import commands
 import os
 import sys
 from dotenv import load_dotenv
-from database.backupDB import scheduled_backup
 
 from database.UserInfoDatabase import UsersDataBase
 from database.AdminsListDB import AdminListDatabase
 from database.AutoroleDB import AutoRoleDanabase
 from database.LogsDatabase import LogsDatabase
 from database.Welcome_Channel import WelcomeChannel
-from database.VoiceRoomDB import VoiceRoom
 
 
 load_dotenv("config/config.env")
